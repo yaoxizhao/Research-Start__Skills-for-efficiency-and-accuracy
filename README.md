@@ -1,8 +1,15 @@
 # Claude Research Skills 🧪
 
-一套面向 **AI / LLM 科研工作流** 的 [Claude Code](https://claude.com/claude-code) Skills。把代码进度管理、算法审查、任务执行这三件"每天都要做但最容易偷懒"的事，交给 Claude 按固定流程帮你跑完。
+原神启动？科研启动！
+欢迎来到“科研启动-claude skills”像魔法师大喊魔咒一样来使用skills吧！
 
-每个 skill 都强制使用 **5 个并行 agent**（算法流程 / 边界异常 / 数值正确性 / 性能 / 对照设计）来完成工作，保证"不跳步、不遗漏"。
+这是一套面向 **AI 科研工作流** 的 [Claude Code](https://claude.com/claude-code) Skills。把代码进度管理、算法审查、任务执行这三件在科研过程中反复做，却很难写prompt的事，交给 Claude 按固定流程完成！
+
+每个 skill 都强制使用 **5 个并行 agent**（算法流程 / 边界异常 / 数值正确性 / 性能 / 对照设计）来完成工作，更好的提升了整体能力！
+
+同时本skill还配带了 自动commit/更新实验记录文档/更新代码总结/更新待解决issue 等不同功能。可以保证claude按照通用pipeline丝滑进展的同时，增强了用户的介入能力，让你可以随时调控下一步的进展方向～
+
+同时本repo还在积极更新中，未来计划完成：论文撰写/论文润色/related works校验等多种功能，欢迎star，跟进最新的进展！！
 
 ---
 
