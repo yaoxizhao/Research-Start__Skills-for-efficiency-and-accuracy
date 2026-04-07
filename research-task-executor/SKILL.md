@@ -55,18 +55,16 @@ description: "仅当用户精确输入'科研启动-执行'这六个字时才触
 
 | 项目目录 | 任务类型 | 推荐环境 |
 |----------|----------|----------|
-| `Adablock+L2P-work` 及相关 | 全部 | `fast-dllm` |
-| `Skiplarge` 及相关 | training | `llamafactory_sdar2` |
-| `Skiplarge` 及相关 | inference | `opencompass` |
+| `<PROJECT_DIR>` | `<TASK_TYPE>` | `<ENV_NAME>` |
 
-环境基础路径：`/sensei-fs-3/users/hyou/Lixuan/miniconda3`
+环境基础路径：`<YOUR_CONDA_BASE_PATH>`
 
 检查方式：运行 `echo $CONDA_DEFAULT_ENV` 或 `conda info --envs | grep '*'`
 
 如果当前环境不对，提醒用户：
 ```
 当前环境是 [xxx]，建议激活 [推荐环境]：
-source /sensei-fs-3/users/hyou/Lixuan/miniconda3/bin/activate [推荐环境]
+source <YOUR_CONDA_BASE_PATH>/bin/activate [推荐环境]
 ```
 
 ## 一致性检查器
@@ -121,9 +119,9 @@ source /sensei-fs-3/users/hyou/Lixuan/miniconda3/bin/activate [推荐环境]
 1. **Git 管理**：
    - `git add` 相关文件（不要 `git add .`）
    - `git commit` 附清晰 commit message（不加 Claude 署名）
-   - Commit 身份：`selinawei` / `selinawei2003@outlook.com`
+   - Commit 身份：`<YOUR_GIT_USERNAME>` / `<YOUR_GIT_EMAIL>`
    - 在 commit 前先确认用户同意
-   - Push 使用：`GIT_SSH_COMMAND="ssh -i /sensei-fs-3/users/hyou/Lixuan/.ssh/id_ed25519_selinawei -o IdentitiesOnly=yes" git push`
+   - Push 使用：`GIT_SSH_COMMAND="ssh -i <YOUR_SSH_KEY_PATH> -o IdentitiesOnly=yes" git push`
 
 2. **更新文档**：
    - 更新 `PROGRESS.md`：记录本次修改的文件、改动内容、关键决策、状态

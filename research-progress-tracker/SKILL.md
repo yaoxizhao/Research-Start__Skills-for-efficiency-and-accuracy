@@ -35,14 +35,14 @@ description: "仅当用户精确输入'科研启动'这四个字时才触发此 
   ```
   类型包括：`feat`（新功能）、`fix`（修复）、`refactor`（重构）、`exp`（实验）、`data`（数据处理）、`eval`（评估）
 - **不要在 commit message 中添加 `Co-Authored-By: Claude` 或任何 Claude 相关署名**
-- Commit 身份使用：`selinawei` / `selinawei2003@outlook.com`
+- Commit 身份使用：`<YOUR_GIT_USERNAME>` / `<YOUR_GIT_EMAIL>`
 
 在 commit 前先确认用户同意。
 
 **Git Push 配置**：
 push 时必须使用以下 SSH key：
 ```bash
-GIT_SSH_COMMAND="ssh -i /sensei-fs-3/users/hyou/Lixuan/.ssh/id_ed25519_selinawei -o IdentitiesOnly=yes" git push
+GIT_SSH_COMMAND="ssh -i <YOUR_SSH_KEY_PATH> -o IdentitiesOnly=yes" git push
 ```
 
 ### 2. 代码完成记录文档
@@ -151,18 +151,16 @@ exp_id,date,hypothesis,status,params,key_paths,results,conclusion
 
 | 项目目录 | 任务类型 | 推荐环境 |
 |----------|----------|----------|
-| `Adablock+L2P-work` 及相关 | 全部 | `fast-dllm` |
-| `Skiplarge` 及相关 | training | `llamafactory_sdar2` |
-| `Skiplarge` 及相关 | inference | `opencompass` |
+| `<PROJECT_DIR>` | `<TASK_TYPE>` | `<ENV_NAME>` |
 
-环境基础路径：`/sensei-fs-3/users/hyou/Lixuan/miniconda3`
+环境基础路径：`<YOUR_CONDA_BASE_PATH>`
 
 检查方式：运行 `echo $CONDA_DEFAULT_ENV` 或 `conda info --envs | grep '*'`
 
 如果当前环境不对，提醒用户：
 ```
 当前环境是 [xxx]，建议激活 [推荐环境]：
-source /sensei-fs-3/users/hyou/Lixuan/miniconda3/bin/activate [推荐环境]
+source <YOUR_CONDA_BASE_PATH>/bin/activate [推荐环境]
 ```
 
 ### 7. 工作启动流程

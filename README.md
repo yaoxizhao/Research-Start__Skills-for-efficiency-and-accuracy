@@ -70,14 +70,17 @@ Claude：[确认需求 → 调研代码库 → 写实现 → 自检 → git comm
 
 ## ⚙️ 个人配置项
 
-这些 skill 里有一些**我自己的路径和身份信息**是硬编码的，clone 下来需要改成你自己的：
+这些 skill 里有一些占位符，clone 下来后需要在各自的 `SKILL.md` 里搜索并替换成你自己的值：
 
-- **Git commit 身份**：`selinawei` / `selinawei2003@outlook.com`
-- **Git push SSH key**：`/sensei-fs-3/users/hyou/Lixuan/.ssh/id_ed25519_selinawei`
-- **Conda 环境推荐表**（按项目目录 → 环境名）
-- **Conda 基础路径**：`/sensei-fs-3/users/hyou/Lixuan/miniconda3`
+| 占位符 | 含义 |
+|---|---|
+| `<YOUR_GIT_USERNAME>` | git commit 用的用户名 |
+| `<YOUR_GIT_EMAIL>` | git commit 用的邮箱 |
+| `<YOUR_SSH_KEY_PATH>` | git push 用的 SSH 私钥路径 |
+| `<YOUR_CONDA_BASE_PATH>` | conda 安装的基础路径（如 `~/miniconda3`） |
+| `<PROJECT_DIR>` / `<TASK_TYPE>` / `<ENV_NAME>` | 环境推荐表里的项目目录、任务类型、推荐 conda 环境；可以加多行 |
 
-在各自的 `SKILL.md` 里搜这些字符串替换即可。
+如果你不需要某项功能（例如不想让 skill 帮你 git push），直接把对应那段从 `SKILL.md` 里删掉即可。
 
 ---
 
