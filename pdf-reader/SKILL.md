@@ -1,6 +1,6 @@
 ---
 name: pdf-reader
-description: "仅当用户精确输入'读PDF'这三个字，或者用户以'/pdf'开头并提供文件路径时才触发此 skill。用于读取本地 PDF 论文，提取创新点，并评估与现有 RAG baseline 的融合可能性。"
+description: "仅当用户精确输入'读论文'这三个字，或者用户以'/pdf'开头并提供文件路径时才触发此 skill。用于读取本地 PDF 论文，提取创新点，并评估与现有 RAG baseline 的融合可能性。"
 ---
 
 # PDF Reader Skill — 论文解析 + 创新点融合评估
@@ -13,15 +13,15 @@ description: "仅当用户精确输入'读PDF'这三个字，或者用户以'/pd
 ## 用户背景
 
 - 硕士研究生，需要产出几个创新点毕业
-- 现有 baseline：Naive RAG（基于 fiqa 数据集，BAAI/bge-m3 embedding + ChromaDB + Qwen2.5-7B）
+- 现有 baseline：Naive RAG（架构细节从 config.py 动态读取：数据集名、embedding 模型、LLM 模型等）
 - 硬件：2x RTX 3090（48GB 总显存）
-- 创新点要求：不需要真正的原创性突破，但需要看起来合理、有学术包装、可实现（2张3090能跑、不耗时）
+- 创新点要求：需要合理可行、有学术包装、可实现（2张3090能跑、不耗时）的工程改进方案
 - 论文存放目录：`/data/zhaoyaoxi/paper/pdf/`
 - Markdown 输出目录：`/data/zhaoyaoxi/paper/markdown/`
 
 ## 触发条件
 
-- 用户输入精确为 `读PDF`
+- 用户输入精确为 `读论文`
 - 用户输入以 `/pdf` 开头，后跟文件路径（如 `/pdf /data/zhaoyaoxi/paper/pdf/xxx.pdf`）
 
 ## 工作流程
@@ -29,17 +29,12 @@ description: "仅当用户精确输入'读PDF'这三个字，或者用户以'/pd
 ### 第一步：确认 PDF 文件路径
 
 1. 如果用户输入的是 `/pdf <路径>`，直接使用该路径
-2. 如果用户只输入了 `读PDF`，列出 `/data/zhaoyaoxi/paper/pdf/` 下的所有 PDF 文件供用户选择
+2. 如果用户只输入了 `读论文`，列出 `/data/zhaoyaoxi/paper/pdf/` 下的所有 PDF 文件供用户选择
 3. 验证文件路径是否存在且为 `.pdf` 后缀。如果文件不存在，告知用户并停止
 
 ### 第二步：运行 MinerU 解析 PDF
 
-先检查 MinerU 是否已安装（`pip show mineru`），未安装则执行：
-```bash
-pip install --upgrade pip && pip install uv && uv pip install -U "mineru[all]"
-```
-
-解析命令：
+解析命令（前提：MinerU 已安装。如果未安装，提示用户自行安装 `pip install "mineru[all]"`）：
 ```bash
 rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output -b pipeline
 ```
@@ -62,14 +57,40 @@ rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output
 
 ### 第五步（核心）：创新点融合评估
 
-这是本 skill 最重要的部分。基于提取的创新点，结合用户的现有 baseline，进行融合可行性分析。
+这是本 skill 最重要的部分。基于提取的创新点，结合用户的现有 baseline 和已实现的创新点，进行融合可行性分析。
 
-#### 用户现有 Baseline 架构
+#### 前置：了解已有创新点
 
+在做融合评估前，先读取：
+- `docs/INNOVATION_IDEAS.md` — 已分析过的论文和方案（了解有哪些方案可选）
+- `rag/pipeline.py` — 查看已注册的 pipeline modes（了解哪些方案已经实现了代码）
+
+据此判断：哪些创新点只有分析、哪些已经有代码实现。
+
+#### 用户现有 Baseline 架构（动态读取，不要硬编码）
+
+启动时从以下来源读取当前状态：
+
+- `config.py`：DATASET_NAME、EMBED_MODEL、LLM_MODEL、GLM_MODEL、TOP_K、CHUNK_SIZE、RAGAS_MAX_WORKERS
+- `rag/pipeline.py`：available_modes() 获取已注册 modes
+- `docs/EXPERIMENTS.csv`：解析最新行，获取各 mode 的 baseline 指标
+
+读取命令：
+```bash
+python3 -c "import sys; sys.path.insert(0,'/data/zhaoyaoxi/rag_project'); import config as c; print(f'Dataset: {c.DATASET_NAME}, Embed: {c.EMBED_MODEL}, LLM: {c.LLM_MODEL}, Judge: {c.GLM_MODEL}, TopK: {c.TOP_K}, Workers: {c.RAGAS_MAX_WORKERS}')"
 ```
-用户 Query → BAAI/bge-m3 Embedding → ChromaDB 检索 top-k → 拼接上下文 → Qwen2.5-7B 生成回答
-数据集：BeIR/fiqa（金融QA，57,600 docs）
-评测：Ragas（DeepSeek API 做 judge）
+
+按以下格式组装展示：
+```
+用户 Query → {EMBED_MODEL} → ChromaDB top-{TOP_K} → 拼接上下文 → {LLM_MODEL} 生成
+数据集：{DATASET_NAME}
+评测：Ragas（{GLM_MODEL}，{RAGAS_MAX_WORKERS} 并发）
+已注册 modes：[从 pipeline.py 读取]
+
+Baseline 指标（从 docs/EXPERIMENTS.csv 最新行提取）：
+| 指标 | no_rag | naive_rag | [其他已注册 mode...] |
+[按 CSV 列名动态生成表格]
+核心瓶颈：[根据指标数值总结]
 ```
 
 #### 融合评估框架
@@ -86,15 +107,19 @@ rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output
 
 #### 融合方案输出格式
 
-对**每个可行的融合方案**，输出：
+对**每个可行的融合方案**，分为两类输出：
+
+**A. 独立方案（新创新点 + naive baseline）**
 
 ```markdown
 ### 融合方案 N：[吸引人的方案名称]
 
-**灵感来源**：[原论文创新点] + [你的 baseline 环节]
+**类型**：独立方案（与 naive_rag baseline 融合）
+
+**灵感来源**：[原论文创新点] + [baseline 环节]
 
 **核心思路**：
-用 2-3 句话描述融合后的方法。要听起来像一篇正经论文的贡献。
+用 2-3 句话描述融合后的方法。
 
 **具体做法**：
 1. 步骤一（具体到代码层面）
@@ -114,14 +139,45 @@ rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output
 **源码参考**：[如果论文提到了 GitHub 地址，记录下来。格式：`repo: owner/name` 或完整 URL。如果没开源则写"无"]
 ```
 
+**B. 缝合方案（新创新点 + 已实现的某个创新点）**
+
+当 `rag/pipeline.py` 中已有除 `no_rag`/`naive_rag` 之外的 mode 时，额外输出缝合方案：
+
+```markdown
+### 缝合方案 N：[吸引人的方案名称]
+
+**类型**：缝合方案（与 [已实现的创新点名] 组合）
+
+**灵感来源**：[新论文创新点] + [已实现创新点的方法]
+
+**核心思路**：
+说明两者如何互补或叠加，为什么组合后比单独使用更好。
+
+**具体做法**：
+1. 复用 [已实现创新点] 的模块（文件路径）
+2. 在其 [前/后] 插入 [新创新点] 的逻辑
+3. 新建组合 pipeline 类，编排两者的调用顺序
+
+**新的 pipeline mode 名**：[建议名称，如 crag_self_rag]
+
+**预期效果**：
+- 相比单独 [创新点A] 的提升：[说明]
+- 相比单独 [创新点B] 的提升：[说明]
+
+**实现成本**：[低/中/高]
+**所需时间**：[估算]
+**风险点**：[可能踩的坑]
+```
+
 #### 评估标准
 
 **优先推荐的方案特征**（按优先级排序）：
-1. 在现有 baseline 上加一个轻量模块即可（不改已有代码架构）
-2. 不需要额外训练大模型（微调小模型或用现成模型）
-3. 有明确的"故事线"（能在论文里讲出一个完整的动机→方法→实验的逻辑链）
-4. 有现成的开源实现可以参考
-5. 能在 Ragas 指标上看到数值提升（哪怕很小）
+1. 如果有已实现的创新点，优先考虑**缝合方案**（产出更多创新点、性价比最高）
+2. 在现有 baseline 上加一个轻量模块即可（不改已有代码架构，遵守 EXTENSION_GUIDE）
+3. 不需要额外训练大模型（微调小模型或用现成模型）
+4. 有明确的"故事线"（能在论文里讲出一个完整的动机→方法→实验的逻辑链）
+5. 有现成的开源实现可以参考
+6. 能在 Ragas 指标上看到数值提升（哪怕很小）
 
 **应该排除的方案**：
 - 需要训练超过 1B 参数的模型
@@ -146,14 +202,21 @@ rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output
 
 ## 🔥 融合评估
 
-### 方案一：[名称]（推荐指数：⭐⭐⭐⭐⭐）
-[按上面的融合方案格式输出]
+### 独立方案
 
-### 方案二：[名称]（推荐指数：⭐⭐⭐⭐）
+#### 方案一：[名称]（推荐指数：⭐⭐⭐⭐⭐）
+[按独立方案格式输出]
+
+#### 方案二：[名称]（推荐指数：⭐⭐⭐⭐）
 [同上]
 
+### 缝合方案（如果有已实现的创新点）
+
+#### 缝合方案一：[名称]（推荐指数：⭐⭐⭐⭐⭐）
+[按缝合方案格式输出]
+
 ### 💡 我的建议
-[综合推荐最适合"水创新点"的方案，说明理由]
+[综合推荐最务实、最容易落地出成果的方案，说明理由]
 ```
 
 ## 跨论文记忆
@@ -172,6 +235,9 @@ rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output
 **可行的融合方案**：
 - [方案名]：xxx
 
+**可与以下已实现创新点缝合**：
+- [创新点名]：缝合思路 xxx（如果有已实现的创新点）
+
 **已分析的论文列表**：
 - [论文1标题]：关键词1, 关键词2 — 源码：[URL 或 无]
 - [论文2标题]：关键词1, 关键词2 — 源码：[URL 或 无]
@@ -181,7 +247,7 @@ rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output
 
 ## 错误处理
 
-- **MinerU 未安装**：自动安装
+- **MinerU 未安装**：提示用户自行安装，不自动执行
 - **PDF 解析失败**：检查文件是否损坏或加密
 - **论文与 RAG 无关**：仍然总结创新点，但明确告知"与你的 RAG baseline 难以直接融合"
 - **找不到创新点**：可能是综述类论文，总结其提到的各方法，推荐最有融合潜力的
@@ -189,7 +255,7 @@ rm -rf /tmp/mineru_output && mineru -p "<PDF文件路径>" -o /tmp/mineru_output
 ## 使用示例
 
 ```
-用户：读PDF
+用户：读论文
 Claude：/data/zhaoyaoxi/paper/ 下有以下 PDF：
         1. Yan 等 - 2024 - Corrective Retrieval Augmented Generation.pdf
         请选择要分析的论文（输入序号或路径）。

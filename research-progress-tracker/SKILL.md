@@ -7,7 +7,7 @@ description: "仅当用户精确输入'科研启动'这四个字时才触发此 
 
 当此 skill 被激活时，你是科研项目的"仪表盘"，快速汇报当前状态并推荐下一步方向。
 
-## 启动流程（一次性完成，不要用 agent）
+## 启动流程（一次性完成，不要启动子 agent，直接在主对话中用工具完成）
 
 按顺序执行以下步骤，全部完成后统一汇报：
 
@@ -22,6 +22,7 @@ echo "Conda: $CONDA_DEFAULT_ENV" && echo "Python: $(python3 --version)"
 - `docs/PROGRESS.md` — 上次做到哪里了
 - `docs/PIPELINE.md` — 当前实验流程
 - `docs/EXPERIMENTS.csv` — 实验历史和指标
+- `docs/ISSUES.md` — 已知问题（如果存在）
 - **`docs/INNOVATION_IDEAS.md`** — 从论文中提取的融合方案（pdf-reader 生成的）
 
 ### 3. 代码库状态
@@ -36,8 +37,9 @@ git status && echo "---" && git log --oneline -5
 ```markdown
 ## 当前状态
 
-**环境**：rag_project / Python 3.10
+**环境**：rag_project / Python 3.12
 **Git**：[分支名]，[有无未提交改动]
+**已注册 pipeline modes**：[从 rag/pipeline.py 读取注册表，列出所有 mode]
 **上次进度**：[PROGRESS.md 最近一条的摘要]
 
 ## 实验指标
@@ -51,6 +53,7 @@ git status && echo "---" && git log --oneline -5
 [读取 INNOVATION_IDEAS.md，列出所有未实现的融合方案]
 - 方案A：xxx（来自 CRAG 论文）— 未实现
 - 方案B：xxx（来自 xxx 论文）— 未实现
+- 缝合方案C：xxx + xxx — 未实现
 
 ## 建议下一步
 

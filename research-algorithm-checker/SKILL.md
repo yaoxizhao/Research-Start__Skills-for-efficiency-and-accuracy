@@ -15,7 +15,7 @@ description: "仅当用户精确输入'科研启动-检查'这六个字时才触
 - **Agent 2 (检索与边界异常)**：检查极端边界条件：检索返回空结果、索引越界、输入超长截断、API 速率限制等。
 - **Agent 3 (Prompt 与防幻觉审查)**：审查 Prompt 模板：Context 是否隔离？指令是否严谨？是否防止了模型脱离上下文胡编？
 - **Agent 4 (评测严谨性审查)**：核对 evaluate.py，确认 contexts/answer/ground_truth 没传错，Ragas 分数没有虚高或失真。
-- **Agent 5 (论文对齐审查)**：**读取 `docs/INNOVATION_IDEAS.md`**，将代码实现与论文原始设计对比，找出偏差。检查代码是否真正验证了融合假设。
+- **Agent 5 (论文对齐 + EXTENSION_GUIDE 合规)**：**读取 `docs/INNOVATION_IDEAS.md`**，将代码实现与论文原始设计对比，找出偏差。检查代码是否真正验证了融合假设。**额外检查**：是否遵守 EXTENSION_GUIDE（只加文件不改旧代码），是否修改了 `rag/retriever.py`、`rag/augmenter.py`、`rag/generator.py`、`run_baseline.py` 等已有 baseline 模块，每个创新点是否独立注册了 pipeline mode。
 
 ## 启动流程
 
@@ -24,11 +24,13 @@ description: "仅当用户精确输入'科研启动-检查'这六个字时才触
    - `docs/PIPELINE.md` — 当前 pipeline
    - `docs/ISSUES.md` — 已知问题（如果存在）
    - **`docs/INNOVATION_IDEAS.md`** — 从论文提取的融合方案
+   - **`docs/EXTENSION_GUIDE.md`** — 扩展规范（合规性检查基准）
 2. **代码库状态**：`git status && git log --oneline -5`
 3. **向用户确认审查范围**：
    - "本次要检查哪些文件/函数？"
    - "是要找 Bug、查幻觉隐患，还是对照 INNOVATION_IDEAS 核对实现与论文设计的偏差？"
-4. **启动 5 Agent 并行审查**
+   - "快速检查还是全面检查？（快速：只跑核心链路审查 + 论文对齐；全面：5 个角度全跑）"
+4. **根据用户选择启动审查**（快速模式用 2 个 agent，全面模式用 5 个）
 
 ## 核心审查方法：逐段阅读、逐段质疑
 
